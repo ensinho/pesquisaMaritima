@@ -1,0 +1,199 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ocean-themed design system for AquaCensus
+   All colors inspired by the ocean depths, marine life, and coastal environments
+   All colors MUST be HSL for consistency
+*/
+
+@layer base {
+  :root {
+    /* Ocean-inspired backgrounds */
+    --background: 200 30% 98%;
+    --foreground: 210 60% 12%;
+
+    /* Deep ocean cards with subtle blue tint */
+    --card: 200 25% 99%;
+    --card-foreground: 210 60% 12%;
+
+    /* Popover with ocean mist feel */
+    --popover: 195 30% 99%;
+    --popover-foreground: 210 60% 12%;
+
+    /* Deep ocean primary - rich teal/blue */
+    --primary: 200 95% 35%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 195 100% 50%;
+
+    /* Coral accent - warm contrast */
+    --secondary: 25 95% 65%;
+    --secondary-foreground: 210 60% 12%;
+
+    /* Ocean mist muted tones */
+    --muted: 200 20% 94%;
+    --muted-foreground: 210 25% 45%;
+
+    /* Aqua accent - vibrant highlights */
+    --accent: 180 85% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive with coral warmth */
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Subtle ocean borders */
+    --border: 200 20% 88%;
+    --input: 200 20% 88%;
+    --ring: 200 95% 35%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar ocean theme */
+    --sidebar-background: 200 30% 98%;
+    --sidebar-foreground: 210 60% 12%;
+    --sidebar-primary: 200 95% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 200 25% 94%;
+    --sidebar-accent-foreground: 210 60% 12%;
+    --sidebar-border: 200 20% 88%;
+    --sidebar-ring: 200 95% 35%;
+
+    /* Ocean gradients */
+    --gradient-ocean: linear-gradient(135deg, hsl(200, 95%, 35%) 0%, hsl(195, 85%, 45%) 100%);
+    --gradient-depth: linear-gradient(180deg, hsl(200, 30%, 98%) 0%, hsl(195, 25%, 95%) 100%);
+    --gradient-coral: linear-gradient(135deg, hsl(25, 95%, 65%) 0%, hsl(15, 90%, 70%) 100%);
+    --gradient-wave: linear-gradient(135deg, hsl(180, 85%, 45%) 0%, hsl(195, 95%, 50%) 100%);
+    
+    /* Shadows with ocean glow */
+    --shadow-ocean: 0 10px 30px -10px hsl(200 95% 35% / 0.3);
+    --shadow-glow: 0 0 40px hsl(195 100% 50% / 0.2);
+    --shadow-card: 0 4px 20px hsl(200 50% 50% / 0.08);
+    
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-wave: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    /* Deep ocean night */
+    --background: 210 60% 8%;
+    --foreground: 195 30% 95%;
+
+    /* Midnight blue cards */
+    --card: 210 55% 12%;
+    --card-foreground: 195 30% 95%;
+
+    /* Dark ocean popover */
+    --popover: 210 55% 12%;
+    --popover-foreground: 195 30% 95%;
+
+    /* Bright aqua primary for dark mode */
+    --primary: 195 95% 55%;
+    --primary-foreground: 210 60% 8%;
+    --primary-glow: 180 100% 60%;
+
+    /* Warm coral secondary */
+    --secondary: 25 85% 60%;
+    --secondary-foreground: 210 60% 8%;
+
+    /* Deep muted tones */
+    --muted: 210 40% 18%;
+    --muted-foreground: 195 20% 65%;
+
+    /* Vibrant aqua accent */
+    --accent: 180 90% 50%;
+    --accent-foreground: 210 60% 8%;
+
+    /* Destructive with warmth */
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Subtle borders in deep ocean */
+    --border: 210 40% 20%;
+    --input: 210 40% 20%;
+    --ring: 195 95% 55%;
+
+    /* Dark sidebar */
+    --sidebar-background: 210 60% 8%;
+    --sidebar-foreground: 195 30% 95%;
+    --sidebar-primary: 195 95% 55%;
+    --sidebar-primary-foreground: 210 60% 8%;
+    --sidebar-accent: 210 40% 18%;
+    --sidebar-accent-foreground: 195 30% 95%;
+    --sidebar-border: 210 40% 20%;
+    --sidebar-ring: 195 95% 55%;
+
+    /* Dark mode gradients */
+    --gradient-ocean: linear-gradient(135deg, hsl(210, 60%, 12%) 0%, hsl(200, 55%, 20%) 100%);
+    --gradient-depth: linear-gradient(180deg, hsl(210, 60%, 8%) 0%, hsl(210, 55%, 12%) 100%);
+    --gradient-coral: linear-gradient(135deg, hsl(25, 85%, 60%) 0%, hsl(15, 80%, 65%) 100%);
+    --gradient-wave: linear-gradient(135deg, hsl(180, 90%, 50%) 0%, hsl(195, 95%, 55%) 100%);
+    
+    /* Dark mode shadows with glow */
+    --shadow-ocean: 0 10px 30px -10px hsl(195 95% 55% / 0.3);
+    --shadow-glow: 0 0 40px hsl(180 100% 60% / 0.25);
+    --shadow-card: 0 4px 20px hsl(200 90% 20% / 0.4);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+@layer components {
+  /* Ocean wave animation */
+  .ocean-wave {
+    @apply relative overflow-hidden;
+  }
+  
+  .ocean-wave::before {
+    content: '';
+    @apply absolute inset-0 opacity-10;
+    background: var(--gradient-wave);
+    animation: wave 8s ease-in-out infinite;
+  }
+  
+  @keyframes wave {
+    0%, 100% { transform: translateX(-100%) skewX(-15deg); }
+    50% { transform: translateX(100%) skewX(15deg); }
+  }
+  
+  /* Floating animation for marine elements */
+  .float-gentle {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  /* Ocean shimmer effect */
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+  
+  .shimmer::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary-glow) / 0.1), transparent);
+    animation: shimmer 3s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+}
