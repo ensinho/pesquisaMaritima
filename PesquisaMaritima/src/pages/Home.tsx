@@ -151,7 +151,7 @@ const Home = () => {
           )}
 
           {/* ações rápidas */}
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Button
               size="lg"
               className="h-40 flex-col gap-3 relative overflow-hidden group bg-gradient-ocean hover:shadow-ocean transition-all duration-300"
@@ -161,6 +161,17 @@ const Home = () => {
               <Plus className="w-10 h-10 group-hover:scale-110 transition-transform" />
               <span className="text-lg font-semibold">Nova Coleta</span>
               <span className="text-xs opacity-90">Registre uma nova espécie</span>
+            </Button>
+
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-40 flex-col gap-3 relative overflow-hidden group hover:border-secondary hover:bg-secondary/70 transition-all duration-300"
+              onClick={() => navigate("/minhas-coletas")}
+            >
+              <UserIcon className="w-10 h-10 text-secondary group-hover:scale-110 group-hover:text-white transition-transform" />
+              <span className="text-lg font-semibold">Minhas Coletas</span>
+              <span className="text-xs text-muted-foreground group-hover:text-white">Gerencie suas coletas</span>
             </Button>
             
             <Button

@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Home from "./pages/Home";
 import NovaColeta from "./pages/NovaColeta";
+import MinhasColetas from "./pages/MinhasColetas";
 import Catalog from "./pages/Catalog";
 import Favorites from "./pages/Favorites";
 import Profile from "./pages/Profile";
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/home" element={<Home />} />
           <Route path="/nova-coleta" element={<NovaColeta />} />
+          <Route path="/minhas-coletas" element={<MinhasColetas />} />
           <Route path="/catalog" element={<Catalog />} />
           <Route path="/catalogo" element={<Catalog />} />
           <Route path="/favorites" element={<Favorites />} />
@@ -35,7 +37,6 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/perfil" element={<Profile />} />
           <Route path="/admin" element={<Admin />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

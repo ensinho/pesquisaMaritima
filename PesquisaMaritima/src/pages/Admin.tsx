@@ -2,26 +2,31 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useLaboratorios, useCreateLaboratorio } from '@/hooks/useLaboratorios';
-import { useEmbarcacoes, useCreateEmbarcacao } from '@/hooks/useEmbarcacoes';
+import { useEmbarcacoes, useCreateEmbarcacao, useDeleteEmbarcacao } from '@/hooks/useEmbarcacoes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Plus, Building2, Ship } from 'lucide-react';
+import { ArrowLeft, Plus, Building2, Ship, Edit, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import EditEmbarcacaoModal from '@/components/EditEmbarcacaoModal';
+import ConfirmDelete from '@/components/ConfirmDelete';
 
 export default function Admin() {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [newLab, setNewLab] = useState('');
   const [newVessel, setNewVessel] = useState({ tipo: '', laboratorio_id: '' });
+  const [editingEmbarcacao, setEditingEmbarcacao] = useState<any>(null);
+  const [deletingEmbarcacao, setDeletingEmbarcacao] = useState<any>(null);
 
   const { data: laboratorios } = useLaboratorios();
   const { data: embarcacoes } = useEmbarcacoes();
   const createLaboratorio = useCreateLaboratorio();
   const createEmbarcacao = useCreateEmbarcacao();
+  const deleteEmbarcacao = useDeleteEmbarcacao();
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -70,6 +75,16 @@ export default function Admin() {
       laboratorio_id: newVessel.laboratorio_id || undefined,
     });
     setNewVessel({ tipo: '', laboratorio_id: '' });
+  };
+
+  const handleDeleteEmbarcacao = () => {
+    if (!deletingEmbarcacao) return;
+    
+    deleteEmbarcacao.mutate(deletingEmbarcacao.id, {
+      onSuccess: () => {
+        setDeletingEmbarcacao(null);
+      }
+    });
   };
 
   if (!isAdmin) {
@@ -201,11 +216,30 @@ export default function Admin() {
                 {embarcacoes && embarcacoes.length > 0 ? (
                   <div className="space-y-2">
                     {embarcacoes.map((vessel: any) => (
-                      <div key={vessel.id} className="p-3 border rounded-lg">
-                        <p className="font-medium">{vessel.tipo}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {vessel.laboratorios ? `Lab: ${vessel.laboratorios.nome}` : 'Sem laboratório'}
-                        </p>
+                      <div key={vessel.id} className="p-3 border rounded-lg flex justify-between items-center">
+                        <div>
+                          <p className="font-medium">{vessel.tipo}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {vessel.laboratorios ? `Lab: ${vessel.laboratorios.nome}` : 'Sem laboratório'}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditingEmbarcacao(vessel)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDeletingEmbarcacao(vessel)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -216,6 +250,26 @@ export default function Admin() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Modais */}
+        {editingEmbarcacao && (
+          <EditEmbarcacaoModal
+            isOpen={!!editingEmbarcacao}
+            onClose={() => setEditingEmbarcacao(null)}
+            embarcacao={editingEmbarcacao}
+          />
+        )}
+
+        {deletingEmbarcacao && (
+          <ConfirmDelete
+            isOpen={!!deletingEmbarcacao}
+            onClose={() => setDeletingEmbarcacao(null)}
+            onConfirm={handleDeleteEmbarcacao}
+            title="Excluir Embarcação"
+            description={`Tem certeza que deseja excluir a embarcação "${deletingEmbarcacao.tipo}"? Esta ação não pode ser desfeita.`}
+            isLoading={deleteEmbarcacao.isPending}
+          />
+        )}
       </div>
     </div>
   );
