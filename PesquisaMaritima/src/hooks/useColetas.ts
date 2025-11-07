@@ -1,125 +1,150 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from 'react';
+import { coletasAPI, IColeta } from '../services/api';
 import { toast } from 'sonner';
-import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
-export type Coleta = Tables<'coletas'> & {
-  profiles?: {
-    nome: string;
-    email: string;
-  };
-  embarcacoes?: {
-    tipo: string;
-    laboratorios?: {
-      nome: string;
-    };
-  };
-};
+export type Coleta = IColeta;
 
 export const useColetas = () => {
-  return useQuery({
-    queryKey: ['coletas'],
-    queryFn: async () => {
-      // Query simples primeiro, sem joins complexos
-      const { data, error } = await supabase
-        .from('coletas')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as any;
-    },
-  });
+  const [coletas, setColetas] = useState<IColeta[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchColetas = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await coletasAPI.getAll();
+      setColetas(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao buscar coletas');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchColetas();
+  }, []);
+
+  return {
+    data: coletas,
+    isLoading: loading,
+    error,
+    refetch: fetchColetas,
+  };
 };
 
 export const useColetasByUser = (userId: string) => {
-  return useQuery({
-    queryKey: ['coletas', 'user', userId],
-    queryFn: async () => {
-      // Query simples sem joins complexos
-      const { data, error } = await supabase
-        .from('coletas')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as any;
-    },
-    enabled: !!userId,
-  });
+  const [coletas, setColetas] = useState<IColeta[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchColetas = async () => {
+    if (!userId) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await coletasAPI.getByUser(userId);
+      setColetas(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao buscar coletas');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchColetas();
+  }, [userId]);
+
+  return { data: coletas, isLoading: loading, error, refetch: fetchColetas };
+};
+
+export const useColetaById = (id: string) => {
+  const [coleta, setColeta] = useState<IColeta | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    
+    const fetchColeta = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await coletasAPI.getById(id);
+        setColeta(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erro ao buscar coleta');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchColeta();
+  }, [id]);
+
+  return { data: coleta, isLoading: loading, error };
 };
 
 export const useCreateColeta = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (coleta: TablesInsert<'coletas'>) => {
-      const { data, error } = await supabase
-        .from('coletas')
-        .insert(coleta)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
+  const [isPending, setIsPending] = useState(false);
+
+  return {
+    mutate: async (coleta: IColeta) => {
+      setIsPending(true);
+      try {
+        await coletasAPI.create(coleta);
+        toast.success('Coleta criada com sucesso!');
+      } catch (error) {
+        toast.error('Erro ao criar coleta');
+        throw error;
+      } finally {
+        setIsPending(false);
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coletas'] });
-      toast.success('Coleta criada com sucesso!');
-    },
-    onError: (error) => {
-      toast.error('Erro ao criar coleta');
-      console.error(error);
-    },
-  });
+    isPending,
+  };
 };
 
 export const useUpdateColeta = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: TablesUpdate<'coletas'> }) => {
-      const { data: updatedData, error } = await supabase
-        .from('coletas')
-        .update(data)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return updatedData;
+  const [isPending, setIsPending] = useState(false);
+
+  return {
+    mutate: async ({ id, data }: { id: string; data: Partial<IColeta> }) => {
+      setIsPending(true);
+      try {
+        await coletasAPI.update(id, data);
+        toast.success('Coleta atualizada com sucesso!');
+      } catch (error) {
+        toast.error('Erro ao atualizar coleta');
+        throw error;
+      } finally {
+        setIsPending(false);
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coletas'] });
-      toast.success('Coleta atualizada com sucesso!');
-    },
-    onError: (error) => {
-      toast.error('Erro ao atualizar coleta');
-      console.error(error);
-    },
-  });
+    isPending,
+  };
 };
 
 export const useDeleteColeta = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('coletas')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
+  const [isPending, setIsPending] = useState(false);
+
+  return {
+    mutate: async (id: string, options?: { onSuccess?: () => void }) => {
+      setIsPending(true);
+      try {
+        await coletasAPI.delete(id);
+        toast.success('Coleta deletada com sucesso!');
+        if (options?.onSuccess) options.onSuccess();
+      } catch (error) {
+        toast.error('Erro ao deletar coleta');
+        throw error;
+      } finally {
+        setIsPending(false);
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coletas'] });
-      toast.success('Coleta deletada com sucesso!');
-    },
-    onError: (error) => {
-      toast.error('Erro ao deletar coleta');
-      console.error(error);
-    },
-  });
+    isPending,
+  };
 };

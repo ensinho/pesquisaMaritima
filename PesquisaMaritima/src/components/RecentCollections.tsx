@@ -5,11 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tables } from "@/integrations/supabase/types";
+import { IColeta } from '@/services/api';
 
 type Coleta = Tables<"coletas">;
 
 interface RecentCollectionsProps {
-  coletas: Coleta[];
+  coletas: IColeta[];
   isLoading: boolean;
 }
 

@@ -8,6 +8,7 @@ export interface UserStats {
   ultima_coleta: string | null;
 }
 
+// Este hook continua usando Supabase para funções RPC e estatísticas
 export const useUserStatistics = (userId: string) => {
   return useQuery({
     queryKey: ['user-statistics', userId],

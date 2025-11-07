@@ -1,146 +1,122 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from 'react';
+import { favoritosAPI, IFavorito } from '../services/api';
 import { toast } from 'sonner';
-import type { Tables, TablesInsert } from '@/integrations/supabase/types';
-import { Coleta } from './useColetas';
-import { Profile } from './useProfile';
 
-export type Favorito = Tables<'favoritos'> & {
-  profiles?: Profile;
-  coletas?: Coleta;
-};
-
-export const useFavoritos = () => {
-  return useQuery({
-    queryKey: ['favoritos'],
-    queryFn: async () => {
-      // Query simples sem joins complexos
-      const { data, error } = await supabase
-        .from('favoritos')
-        .select('*');
-      
-      if (error) throw error;
-      return data as any;
-    },
-  });
-};
+export type Favorito = IFavorito;
 
 export const useFavoritosByUser = (userId: string) => {
-  return useQuery({
-    queryKey: ['favoritos', 'user', userId],
-    queryFn: async () => {
-      // Query simples sem joins complexos
-      const { data, error } = await supabase
-        .from('favoritos')
-        .select('*')
-        .eq('user_id', userId);
-      
-      if (error) throw error;
-      return data as any;
-    },
-    enabled: !!userId,
-  });
+  const [favoritos, setFavoritos] = useState<IFavorito[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchFavoritos = async () => {
+    if (!userId) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await favoritosAPI.getByUser(userId);
+      setFavoritos(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao buscar favoritos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFavoritos();
+  }, [userId]);
+
+  return { data: favoritos, isLoading: loading, error, refetch: fetchFavoritos };
 };
 
 export const useCheckFavorito = (userId: string, coletaId: string) => {
-  return useQuery({
-    queryKey: ['favoritos', 'check', userId, coletaId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('favoritos')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('coleta_id', coletaId)
-        .maybeSingle();
-      
-      if (error) throw error;
-      return !!data;
-    },
-    enabled: !!userId && !!coletaId,
-  });
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!userId || !coletaId) return;
+    
+    const checkFavorito = async () => {
+      setLoading(true);
+      try {
+        const result = await favoritosAPI.check(userId, coletaId);
+        setIsFavorite(result);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkFavorito();
+  }, [userId, coletaId]);
+
+  return { data: isFavorite, isLoading: loading };
 };
 
 export const useToggleFavorito = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async ({ coletaId, userId, isFavorite }: { coletaId: string; userId: string; isFavorite: boolean }) => {
-      if (isFavorite) {
-        const { error } = await supabase
-          .from('favoritos')
-          .delete()
-          .eq('user_id', userId)
-          .eq('coleta_id', coletaId);
-        
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('favoritos')
-          .insert({ user_id: userId, coleta_id: coletaId });
-        
-        if (error) throw error;
+  const [isPending, setIsPending] = useState(false);
+
+  return {
+    mutate: async ({ coletaId, userId, isFavorite }: { coletaId: string; userId: string; isFavorite: boolean }) => {
+      setIsPending(true);
+      try {
+        if (isFavorite) {
+          await favoritosAPI.delete(userId, coletaId);
+          toast.success('Removido dos favoritos');
+        } else {
+          await favoritosAPI.create(userId, coletaId);
+          toast.success('Adicionado aos favoritos');
+        }
+      } catch (error) {
+        toast.error('Erro ao atualizar favoritos');
+        throw error;
+      } finally {
+        setIsPending(false);
       }
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['favoritos'] });
-      queryClient.invalidateQueries({ queryKey: ['favoritos', 'user', variables.userId] });
-      queryClient.invalidateQueries({ queryKey: ['favoritos', 'check', variables.userId, variables.coletaId] });
-      toast.success(variables.isFavorite ? 'Removido dos favoritos' : 'Adicionado aos favoritos');
-    },
-    onError: (error) => {
-      toast.error('Erro ao atualizar favoritos');
-      console.error(error);
-    },
-  });
+    isPending,
+  };
 };
 
 export const useCreateFavorito = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async ({ userId, coletaId }: { userId: string; coletaId: string }) => {
-      const { data, error } = await supabase
-        .from('favoritos')
-        .insert({ user_id: userId, coleta_id: coletaId })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
+  const [isPending, setIsPending] = useState(false);
+
+  return {
+    mutate: async ({ userId, coletaId }: { userId: string; coletaId: string }) => {
+      setIsPending(true);
+      try {
+        await favoritosAPI.create(userId, coletaId);
+        toast.success('Adicionado aos favoritos!');
+      } catch (error) {
+        toast.error('Erro ao adicionar favorito');
+        throw error;
+      } finally {
+        setIsPending(false);
+      }
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['favoritos'] });
-      queryClient.invalidateQueries({ queryKey: ['favoritos', 'user', variables.userId] });
-      toast.success('Adicionado aos favoritos!');
-    },
-    onError: (error) => {
-      toast.error('Erro ao adicionar favorito');
-      console.error(error);
-    },
-  });
+    isPending,
+  };
 };
 
 export const useDeleteFavorito = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async ({ userId, coletaId }: { userId: string; coletaId: string }) => {
-      const { error } = await supabase
-        .from('favoritos')
-        .delete()
-        .eq('user_id', userId)
-        .eq('coleta_id', coletaId);
-      
-      if (error) throw error;
+  const [isPending, setIsPending] = useState(false);
+
+  return {
+    mutate: async ({ userId, coletaId }: { userId: string; coletaId: string }) => {
+      setIsPending(true);
+      try {
+        await favoritosAPI.delete(userId, coletaId);
+        toast.success('Removido dos favoritos!');
+      } catch (error) {
+        toast.error('Erro ao remover favorito');
+        throw error;
+      } finally {
+        setIsPending(false);
+      }
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['favoritos'] });
-      queryClient.invalidateQueries({ queryKey: ['favoritos', 'user', variables.userId] });
-      toast.success('Removido dos favoritos!');
-    },
-    onError: (error) => {
-      toast.error('Erro ao remover favorito');
-      console.error(error);
-    },
-  });
+    isPending,
+  };
 };

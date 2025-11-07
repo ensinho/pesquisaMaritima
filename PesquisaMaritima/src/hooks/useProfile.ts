@@ -93,3 +93,5 @@ export const useCreateProfile = () => {
     },
   });
 };
+
+// Este hook continua usando Supabase diretamente pois está relacionado à autenticação

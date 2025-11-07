@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useColetas } from '@/hooks/useColetas';
-import { useFavoritos, useToggleFavorito } from '@/hooks/useFavoritos';
+import { useFavoritosByUser, useToggleFavorito } from '@/hooks/useFavoritos';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ export default function Catalog() {
   const [searchTerm, setSearchTerm] = useState('');
   
   const { data: coletas, isLoading } = useColetas();
-  const { data: favoritos } = useFavoritos(userId);
+  const { data: favoritos } = useFavoritosByUser(userId);
   const toggleFavorito = useToggleFavorito();
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useFavoritos, useToggleFavorito } from '@/hooks/useFavoritos';
+import { useFavoritosByUser, useToggleFavorito } from '@/hooks/useFavoritos';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart, ArrowLeft, Fish } from 'lucide-react';
@@ -10,7 +10,7 @@ export default function Favorites() {
   const navigate = useNavigate();
   const [userId, setUserId] = useState<string>('');
   
-  const { data: favoritos, isLoading } = useFavoritos(userId);
+  const { data: favoritos, isLoading } = useFavoritosByUser(userId);
   const toggleFavorito = useToggleFavorito();
 
   useEffect(() => {
