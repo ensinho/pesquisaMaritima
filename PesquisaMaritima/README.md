@@ -49,51 +49,98 @@ Centralizar e digitalizar o processo de catalogação de espécies marinhas, fac
 ## 🛠️ Tecnologias Utilizadas
 
 ### Frontend
-- **React 18** com TypeScript
-- **Vite** para build e desenvolvimento
-- **Tailwind CSS** para estilização
-- **Shadcn/ui** para componentes
-- **React Router** para navegação
-- **Tanstack Query** para gerenciamento de estado
+- **React 18** + **TypeScript** - Interface moderna e tipada
+- **Vite** - Build tool rápido e otimizado
+- **Tailwind CSS** - Estilização utility-first
+- **Shadcn/ui** - Componentes acessíveis
+- **React Router** - Navegação SPA
 
-### Backend & Database
-- **Supabase** (PostgreSQL + Auth + Storage)
-- **Row Level Security (RLS)** para segurança
-- **Real-time subscriptions** para atualizações
+### Backend
+- **Node.js** + **Express** - API REST robusta
+- **TypeScript** - Desenvolvimento tipado
+- **Supabase Client** - Integração com banco
 
-### Ferramentas de Desenvolvimento
-- **ESLint** para qualidade de código
-- **PostCSS** para processamento CSS
-- **Git** para controle de versão
+### Database & Auth
+- **Supabase** (PostgreSQL)
+- **Row Level Security (RLS)**
+- **Supabase Auth** - Autenticação segura
+- **Real-time subscriptions**
 
-## 📁 Estrutura do Projeto
+### Deploy & DevOps
+- **Vercel** - Deploy fullstack automático
+- **GitHub** - Controle de versão e CI/CD
+- **Environment Variables** - Configuração segura
 
+### Desenvolvimento
+- **ESLint** + **Prettier** - Qualidade de código
+- **PostCSS** - Processamento CSS avançado
+
+## 📁 Arquitetura do Sistema
+
+### Estrutura Frontend
 ```
-PesquisaMaritima/
+src/
+├── components/
+│   ├── ui/                 # Shadcn/ui components
+│   ├── EditColetaModal.tsx # Modal de edição
+│   ├── RealtimeUpdates.tsx # Atualizações em tempo real
+│   └── UserStatistics.tsx  # Dashboard de estatísticas
+├── hooks/
+│   ├── useColetas.ts       # CRUD de coletas
+│   ├── useEmbarcacoes.ts   # Gestão de embarcações
+│   ├── useFavoritos.ts     # Sistema de favoritos
+│   └── useStatistics.ts    # Métricas e analytics
+├── pages/
+│   ├── Home.tsx           # Dashboard principal
+│   ├── MinhasColetas.tsx  # Minhas coletas (CRUD)
+│   ├── NovaColeta.tsx     # Formulário de criação
+│   ├── Catalog.tsx        # Catálogo público
+│   ├── Admin.tsx          # Painel administrativo
+│   ├── Auth.tsx           # Autenticação
+│   └── Profile.tsx        # Perfil do usuário
+├── services/
+│   └── api.ts             # Cliente HTTP configurado
+└── integrations/
+    └── supabase/          # Configuração Supabase
+```
+
+### Estrutura Backend
+```
+pesquisaMaritima-backend/
 ├── src/
-│   ├── components/          # Componentes reutilizáveis
-│   │   ├── ui/             # Componentes base (Shadcn)
-│   │   ├── EditColetaModal.tsx
-│   │   ├── EditEmbarcacaoModal.tsx
-│   │   ├── ConfirmDelete.tsx
-│   │   └── ...
-│   ├── hooks/              # Hooks customizados
-│   │   ├── useColetas.ts   # CRUD de coletas
-│   │   ├── useEmbarcacoes.ts # CRUD de embarcações
-│   │   ├── useFavoritos.ts
-│   │   └── ...
-│   ├── pages/              # Páginas da aplicação
-│   │   ├── Home.tsx        # Dashboard principal
-│   │   ├── MinhasColetas.tsx # Gestão pessoal de coletas
-│   │   ├── NovaColeta.tsx  # Formulário de nova coleta
-│   │   ├── Catalog.tsx     # Catálogo público
-│   │   ├── Admin.tsx       # Painel administrativo
-│   │   └── ...
-│   ├── integrations/       # Configurações de integração
-│   │   └── supabase/
-│   └── lib/                # Utilitários
-└── supabase/               # Configurações do banco
-    └── migrations/         # Migrações SQL
+│   ├── controllers/       # Lógica de negócio
+│   │   ├── coletasController.ts
+│   │   ├── embarcacoesController.ts
+│   │   ├── laboratoriosController.ts
+│   │   └── favoritosController.ts
+│   ├── routes/           # Definição de rotas
+│   │   ├── coletasRoutes.ts
+│   │   ├── embarcacoesRoutes.ts
+│   │   └── index.ts
+│   ├── models/           # Models do Supabase
+│   │   ├── Coleta.ts
+│   │   ├── Embarcacao.ts
+│   │   └── Laboratorio.ts
+│   ├── config/
+│   │   └── supabase.ts   # Configuração do cliente
+│   └── server.ts         # Servidor Express
+├── dist/                 # Build compilado
+├── vercel.json          # Configuração Vercel
+└── package.json
+```
+
+### Database Schema (Supabase)
+```sql
+-- Tabelas principais
+├── profiles              # Perfis de usuários
+├── laboratorios         # Laboratórios de pesquisa
+├── embarcacoes          # Embarcações para coleta
+├── coletas              # Registros de coletas
+└── favoritos            # Sistema de favoritos
+
+-- Funções customizadas
+├── get_user_collection_stats()  # Estatísticas por usuário
+└── get_coletas_with_details()   # Coletas com joins
 ```
 
 ## 🚀 Funcionalidades Detalhadas
@@ -129,14 +176,8 @@ PesquisaMaritima/
 - **Row Level Security** no banco de dados
 - **Validação de entrada** em todas as operações
 - **Controle de permissões** por função de usuário
-- **Sanitização de dados** para prevenir XSS
 
 ## 🌐 Estados da Aplicação
-
-### Usuário Não Autenticado
-- Página de apresentação do sistema
-- Formulário de login/cadastro
-- Redirecionamento automático
 
 ### Usuário Comum
 - Dashboard pessoal com estatísticas
@@ -174,6 +215,5 @@ PesquisaMaritima/
 3. Confirma ação de exclusão
 4. Registro removido permanentemente
 5. Lista atualizada automaticamente
-
 
 **AquaCensus** 
