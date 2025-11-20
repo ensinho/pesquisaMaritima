@@ -23,6 +23,17 @@ export interface IColeta {
   user_id?: string;
   created_at?: string;
   updated_at?: string;
+  profiles?: {
+    nome: string;
+    email: string;
+    laboratorio_id?: string;
+    laboratorios?: {
+      nome: string;
+    };
+  };
+  embarcacoes?: {
+    tipo: string;
+  };
 }
 
 class Coleta {
@@ -30,6 +41,51 @@ class Coleta {
     const { data, error } = await supabase
       .from('coletas')
       .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  /**
+   * Get all collections with researcher and vessel info (for admin)
+   */
+  async findAllWithDetails(): Promise<IColeta[]> {
+    const { data, error } = await supabase
+      .from('coletas')
+      .select(`
+        *,
+        profiles!coletas_user_id_fkey (
+          nome,
+          email,
+          laboratorio_id,
+          laboratorios (nome)
+        ),
+        embarcacoes (tipo)
+      `)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  /**
+   * Get collections filtered by researcher ID (for admin)
+   */
+  async findByResearcher(researcherId: string): Promise<IColeta[]> {
+    const { data, error } = await supabase
+      .from('coletas')
+      .select(`
+        *,
+        profiles!coletas_user_id_fkey (
+          nome,
+          email,
+          laboratorio_id,
+          laboratorios (nome)
+        ),
+        embarcacoes (tipo)
+      `)
+      .eq('user_id', researcherId)
       .order('created_at', { ascending: false });
     
     if (error) throw error;
@@ -89,6 +145,35 @@ class Coleta {
     
     if (error) throw error;
     return true;
+  }
+
+  /**
+   * Admin-specific: Force delete any collection
+   */
+  async adminDelete(id: string): Promise<boolean> {
+    // Uses service role or admin privileges
+    const { error } = await supabase
+      .from('coletas')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    return true;
+  }
+
+  /**
+   * Admin-specific: Force update any collection
+   */
+  async adminUpdate(id: string, coleta: Partial<IColeta>): Promise<IColeta | null> {
+    const { data, error } = await supabase
+      .from('coletas')
+      .update({ ...coleta, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
   }
 }
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useUpdateColeta } from '@/hooks/useColetas';
+import { useAdminUpdateColeta } from '@/hooks/useAdminColetas';
 import { useEmbarcacoes } from '@/hooks/useEmbarcacoes';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -16,10 +17,11 @@ import type { Tables } from '@/integrations/supabase/types';
 interface EditColetaModalProps {
   isOpen: boolean;
   onClose: () => void;
-  coleta: Tables<'coletas'>;
+  coleta: Tables<'coletas'> | any;
+  isAdmin?: boolean;
 }
 
-export default function EditColetaModal({ isOpen, onClose, coleta }: EditColetaModalProps) {
+export default function EditColetaModal({ isOpen, onClose, coleta, isAdmin = false }: EditColetaModalProps) {
   const [formData, setFormData] = useState({
     nome_comum: '',
     nome_cientifico: '',
@@ -38,6 +40,7 @@ export default function EditColetaModal({ isOpen, onClose, coleta }: EditColetaM
 
   const { data: embarcacoes } = useEmbarcacoes();
   const updateColeta = useUpdateColeta();
+  const adminUpdateColeta = useAdminUpdateColeta();
 
   useEffect(() => {
     if (coleta && isOpen) {
@@ -75,10 +78,13 @@ export default function EditColetaModal({ isOpen, onClose, coleta }: EditColetaM
       foto_3: formData.foto_3 || null
     };
 
-    updateColeta.mutate({ id: coleta.id, data: updateData }, {
+    const mutationFn = isAdmin ? adminUpdateColeta : updateColeta;
+    mutationFn.mutate({ id: coleta.id, data: updateData }, {
       onSuccess: () => onClose()
     });
   };
+
+  const isPending = isAdmin ? adminUpdateColeta.isPending : updateColeta.isPending;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -227,8 +233,8 @@ export default function EditColetaModal({ isOpen, onClose, coleta }: EditColetaM
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={updateColeta.isPending}>
-              {updateColeta.isPending ? 'Salvando...' : 'Salvar Alterações'}
+            <Button type="submit" disabled={isPending}>
+              {isPending ? 'Salvando...' : 'Salvar Alterações'}
             </Button>
           </DialogFooter>
         </form>

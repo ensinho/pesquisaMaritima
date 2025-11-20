@@ -23,6 +23,17 @@ export interface IColeta {
   user_id?: string;
   created_at?: string;
   updated_at?: string;
+  profiles?: {
+    nome: string;
+    email: string;
+    laboratorio_id?: string;
+    laboratorios?: {
+      nome: string;
+    };
+  };
+  embarcacoes?: {
+    tipo: string;
+  };
 }
 
 export interface ILaboratorio {
@@ -48,11 +59,40 @@ export interface IFavorito {
   created_at?: string;
 }
 
+export interface IUser {
+  id: string;
+  nome: string;
+  email: string;
+  descricao?: string;
+  cargo?: string;
+  status: boolean;
+  foto_perfil?: string;
+  laboratorio_id?: string;
+  created_at?: string;
+  updated_at?: string;
+  role?: string;
+  laboratorios?: {
+    nome: string;
+  };
+}
+
 // Coletas API
 export const coletasAPI = {
   async getAll(): Promise<IColeta[]> {
     const response = await fetch(`${API_URL}/coletas`);
     if (!response.ok) throw new Error('Failed to fetch coletas');
+    return response.json();
+  },
+
+  async getAllWithDetails(): Promise<IColeta[]> {
+    const response = await fetch(`${API_URL}/coletas/details`);
+    if (!response.ok) throw new Error('Failed to fetch coletas with details');
+    return response.json();
+  },
+
+  async getByResearcher(researcherId: string): Promise<IColeta[]> {
+    const response = await fetch(`${API_URL}/coletas/researcher/${researcherId}`);
+    if (!response.ok) throw new Error('Failed to fetch researcher coletas');
     return response.json();
   },
 
@@ -88,11 +128,73 @@ export const coletasAPI = {
     return response.json();
   },
 
+  async adminUpdate(id: string, coleta: Partial<IColeta>): Promise<IColeta> {
+    const response = await fetch(`${API_URL}/coletas/admin/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(coleta),
+    });
+    if (!response.ok) throw new Error('Failed to update coleta');
+    return response.json();
+  },
+
   async delete(id: string): Promise<void> {
     const response = await fetch(`${API_URL}/coletas/${id}`, {
       method: 'DELETE',
     });
     if (!response.ok) throw new Error('Failed to delete coleta');
+  },
+
+  async adminDelete(id: string): Promise<void> {
+    const response = await fetch(`${API_URL}/coletas/admin/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Failed to delete coleta');
+  },
+};
+
+// Users API
+export const usersAPI = {
+  async getAll(): Promise<IUser[]> {
+    const response = await fetch(`${API_URL}/users`);
+    if (!response.ok) throw new Error('Failed to fetch users');
+    return response.json();
+  },
+
+  async getById(id: string): Promise<IUser> {
+    const response = await fetch(`${API_URL}/users/${id}`);
+    if (!response.ok) throw new Error('Failed to fetch user');
+    return response.json();
+  },
+
+  async updateProfile(id: string, updates: Partial<IUser>): Promise<IUser> {
+    const response = await fetch(`${API_URL}/users/${id}/profile`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) throw new Error('Failed to update user profile');
+    return response.json();
+  },
+
+  async updateRole(id: string, role: 'admin' | 'researcher'): Promise<IUser> {
+    const response = await fetch(`${API_URL}/users/${id}/role`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role }),
+    });
+    if (!response.ok) throw new Error('Failed to update user role');
+    return response.json();
+  },
+
+  async updateStatus(id: string, status: boolean): Promise<IUser> {
+    const response = await fetch(`${API_URL}/users/${id}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+    if (!response.ok) throw new Error('Failed to update user status');
+    return response.json();
   },
 };
 

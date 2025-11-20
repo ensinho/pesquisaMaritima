@@ -11,6 +11,31 @@ class ColetasController {
     }
   }
 
+  /**
+   * Admin: Get all collections with researcher and vessel details
+   */
+  async getAllColetasWithDetails(req: Request, res: Response) {
+    try {
+      const coletas = await Coleta.findAllWithDetails();
+      res.status(200).json(coletas);
+    } catch (error) {
+      res.status(500).json({ message: 'Error retrieving coletas with details', error });
+    }
+  }
+
+  /**
+   * Admin: Get collections by researcher
+   */
+  async getColetasByResearcher(req: Request, res: Response) {
+    const { researcherId } = req.params;
+    try {
+      const coletas = await Coleta.findByResearcher(researcherId);
+      res.status(200).json(coletas);
+    } catch (error) {
+      res.status(500).json({ message: 'Error retrieving researcher coletas', error });
+    }
+  }
+
   async getColetasByUser(req: Request, res: Response) {
     const { userId } = req.params;
     try {
@@ -56,10 +81,42 @@ class ColetasController {
     }
   }
 
+  /**
+   * Admin: Force update any collection
+   */
+  async adminUpdateColeta(req: Request, res: Response) {
+    const { id } = req.params;
+    try {
+      const updatedColeta = await Coleta.adminUpdate(id, req.body);
+      if (!updatedColeta) {
+        return res.status(404).json({ message: 'Coleta not found' });
+      }
+      res.status(200).json(updatedColeta);
+    } catch (error) {
+      res.status(400).json({ message: 'Error updating coleta', error });
+    }
+  }
+
   async deleteColeta(req: Request, res: Response) {
     const { id } = req.params;
     try {
       const deleted = await Coleta.delete(id);
+      if (!deleted) {
+        return res.status(404).json({ message: 'Coleta not found' });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: 'Error deleting coleta', error });
+    }
+  }
+
+  /**
+   * Admin: Force delete any collection
+   */
+  async adminDeleteColeta(req: Request, res: Response) {
+    const { id } = req.params;
+    try {
+      const deleted = await Coleta.adminDelete(id);
       if (!deleted) {
         return res.status(404).json({ message: 'Coleta not found' });
       }

@@ -7,12 +7,17 @@ import favoritosController from '../controllers/favoritosController';
 const router = Router();
 
 // Rotas de Coletas
-router.get('/coletas', coletasController.getAllColetas);
+// IMPORTANT: Specific routes must come before parameterized routes
+router.get('/coletas/details', coletasController.getAllColetasWithDetails); // Admin: get all with details
 router.get('/coletas/user/:userId', coletasController.getColetasByUser);
+router.get('/coletas/researcher/:researcherId', coletasController.getColetasByResearcher); // Admin: filter by researcher
+router.get('/coletas', coletasController.getAllColetas);
 router.get('/coletas/:id', coletasController.getColetaById);
 router.post('/coletas', coletasController.createColeta);
+router.put('/coletas/admin/:id', coletasController.adminUpdateColeta); // Admin: force update (must be before generic PUT)
 router.put('/coletas/:id', coletasController.updateColeta);
-router.delete('/coletas/:id', coletasController.deleteColeta);
+router.delete('/coletas/admin/:id', coletasController.adminDeleteColeta); // Admin: force delete (must be before generic DELETE)
+router.delete('/coletas/:id', coletasController.deleteColeta)
 
 // Rotas de Laboratórios
 router.get('/laboratorios', laboratoriosController.getAll);
