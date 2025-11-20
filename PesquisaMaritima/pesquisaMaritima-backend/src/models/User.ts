@@ -29,21 +29,31 @@ class User {
    * Admins are excluded from the list (can't manage other admins)
    */
   static async findAll(): Promise<UserWithRole[]> {
-    const { data, error } = await supabase
+    // First, get all profiles
+    const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select(`
-        *,
-        user_roles (role),
-        laboratorios (nome)
-      `)
+      .select('*, laboratorios (nome)')
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (profilesError) throw profilesError;
+    if (!profiles || profiles.length === 0) return [];
 
-    // Filter out admins and format the data
-    const usersWithRoles = (data || []).map((user: any) => ({
-      ...user,
-      role: user.user_roles?.[0]?.role || 'researcher',
+    // Get all user roles
+    const { data: roles, error: rolesError } = await supabase
+      .from('user_roles')
+      .select('user_id, role');
+
+    if (rolesError) throw rolesError;
+
+    // Create a map of user_id to role
+    const roleMap = new Map(
+      (roles || []).map((r: any) => [r.user_id, r.role])
+    );
+
+    // Combine profiles with roles
+    const usersWithRoles: UserWithRole[] = profiles.map((profile: any) => ({
+      ...profile,
+      role: roleMap.get(profile.id) || 'researcher',
     }));
 
     // Exclude admins from the list
@@ -54,24 +64,31 @@ class User {
    * Get a single user by ID
    */
   static async findById(id: string): Promise<UserWithRole | null> {
-    const { data, error } = await supabase
+    // Get profile
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select(`
-        *,
-        user_roles (role),
-        laboratorios (nome)
-      `)
+      .select('*, laboratorios (nome)')
       .eq('id', id)
       .single();
 
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw error;
+    if (profileError) {
+      if (profileError.code === 'PGRST116') return null;
+      throw profileError;
     }
 
+    // Get user role
+    const { data: roleData, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', id)
+      .single();
+
+    // If no role found, default to researcher
+    const role = roleData?.role || 'researcher';
+
     return {
-      ...data,
-      role: data.user_roles?.[0]?.role || 'researcher',
+      ...profile,
+      role,
     };
   }
 
@@ -89,19 +106,13 @@ class User {
       .from('profiles')
       .update(updates)
       .eq('id', id)
-      .select(`
-        *,
-        user_roles (role),
-        laboratorios (nome)
-      `)
+      .select('*, laboratorios (nome)')
       .single();
 
     if (error) throw error;
 
-    return {
-      ...data,
-      role: data.user_roles?.[0]?.role || 'researcher',
-    };
+    // Get the updated user with role
+    return await this.findById(id);
   }
 
   /**
@@ -145,19 +156,13 @@ class User {
       .from('profiles')
       .update({ status })
       .eq('id', userId)
-      .select(`
-        *,
-        user_roles (role),
-        laboratorios (nome)
-      `)
+      .select('*, laboratorios (nome)')
       .single();
 
     if (error) throw error;
 
-    return {
-      ...data,
-      role: data.user_roles?.[0]?.role || 'researcher',
-    };
+    // Get the updated user with role
+    return await this.findById(userId);
   }
 }
 

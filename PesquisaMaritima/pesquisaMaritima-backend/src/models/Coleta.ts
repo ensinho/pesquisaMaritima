@@ -55,18 +55,41 @@ class Coleta {
       .from('coletas')
       .select(`
         *,
-        profiles!coletas_user_id_fkey (
+        profiles (
           nome,
           email,
-          laboratorio_id,
-          laboratorios (nome)
+          laboratorio_id
         ),
         embarcacoes (tipo)
       `)
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    // If we need laboratorios info, fetch it separately
+    const coletas = data || [];
+    if (coletas.length > 0) {
+      const labIds = coletas
+        .map(c => c.profiles?.laboratorio_id)
+        .filter(id => id != null);
+      
+      if (labIds.length > 0) {
+        const { data: labs } = await supabase
+          .from('laboratorios')
+          .select('id, nome')
+          .in('id', labIds);
+        
+        const labMap = new Map(labs?.map(l => [l.id, l]) || []);
+        
+        coletas.forEach(c => {
+          if (c.profiles?.laboratorio_id) {
+            c.profiles.laboratorios = labMap.get(c.profiles.laboratorio_id);
+          }
+        });
+      }
+    }
+    
+    return coletas;
   }
 
   /**
@@ -77,11 +100,10 @@ class Coleta {
       .from('coletas')
       .select(`
         *,
-        profiles!coletas_user_id_fkey (
+        profiles (
           nome,
           email,
-          laboratorio_id,
-          laboratorios (nome)
+          laboratorio_id
         ),
         embarcacoes (tipo)
       `)
@@ -89,7 +111,31 @@ class Coleta {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    // If we need laboratorios info, fetch it separately
+    const coletas = data || [];
+    if (coletas.length > 0) {
+      const labIds = coletas
+        .map(c => c.profiles?.laboratorio_id)
+        .filter(id => id != null);
+      
+      if (labIds.length > 0) {
+        const { data: labs } = await supabase
+          .from('laboratorios')
+          .select('id, nome')
+          .in('id', labIds);
+        
+        const labMap = new Map(labs?.map(l => [l.id, l]) || []);
+        
+        coletas.forEach(c => {
+          if (c.profiles?.laboratorio_id) {
+            c.profiles.laboratorios = labMap.get(c.profiles.laboratorio_id);
+          }
+        });
+      }
+    }
+    
+    return coletas;
   }
 
   async findByUser(userId: string): Promise<IColeta[]> {
