@@ -51,91 +51,114 @@ class Coleta {
    * Get all collections with researcher and vessel info (for admin)
    */
   async findAllWithDetails(): Promise<IColeta[]> {
-    const { data, error } = await supabase
+    // Get all coletas
+    const { data: coletas, error } = await supabase
       .from('coletas')
-      .select(`
-        *,
-        profiles (
-          nome,
-          email,
-          laboratorio_id
-        ),
-        embarcacoes (tipo)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    
-    // If we need laboratorios info, fetch it separately
-    const coletas = data || [];
-    if (coletas.length > 0) {
-      const labIds = coletas
-        .map(c => c.profiles?.laboratorio_id)
-        .filter(id => id != null);
-      
-      if (labIds.length > 0) {
-        const { data: labs } = await supabase
-          .from('laboratorios')
-          .select('id, nome')
-          .in('id', labIds);
-        
-        const labMap = new Map(labs?.map(l => [l.id, l]) || []);
-        
-        coletas.forEach(c => {
-          if (c.profiles?.laboratorio_id) {
-            c.profiles.laboratorios = labMap.get(c.profiles.laboratorio_id);
-          }
-        });
-      }
-    }
-    
-    return coletas;
+    if (!coletas || coletas.length === 0) return [];
+
+    // Get unique user IDs and embarcacao IDs
+    const userIds = [...new Set(coletas.map(c => c.user_id).filter(Boolean))];
+    const embarcacaoIds = [...new Set(coletas.map(c => c.embarcacao_id).filter(Boolean))];
+
+    // Fetch profiles
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, nome, email, laboratorio_id')
+      .in('id', userIds);
+
+    // Fetch laboratorios
+    const labIds = [...new Set(profiles?.map(p => p.laboratorio_id).filter(Boolean) || [])];
+    const { data: labs } = labIds.length > 0 
+      ? await supabase.from('laboratorios').select('id, nome').in('id', labIds)
+      : { data: [] };
+
+    // Fetch embarcacoes
+    const { data: embarcacoes } = embarcacaoIds.length > 0
+      ? await supabase.from('embarcacoes').select('id, tipo').in('id', embarcacaoIds)
+      : { data: [] };
+
+    // Create maps for quick lookup
+    const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+    const labMap = new Map(labs?.map(l => [l.id, l]) || []);
+    const embarcacaoMap = new Map(embarcacoes?.map(e => [e.id, e]) || []);
+
+    // Combine data
+    return coletas.map(coleta => {
+      const profile = coleta.user_id ? profileMap.get(coleta.user_id) : null;
+      const embarcacao = coleta.embarcacao_id ? embarcacaoMap.get(coleta.embarcacao_id) : null;
+      const laboratorio = profile?.laboratorio_id ? labMap.get(profile.laboratorio_id) : null;
+
+      return {
+        ...coleta,
+        profiles: profile ? {
+          ...profile,
+          laboratorios: laboratorio
+        } : null,
+        embarcacoes: embarcacao
+      };
+    });
   }
 
   /**
    * Get collections filtered by researcher ID (for admin)
    */
   async findByResearcher(researcherId: string): Promise<IColeta[]> {
-    const { data, error } = await supabase
+    // Get coletas for this researcher
+    const { data: coletas, error } = await supabase
       .from('coletas')
-      .select(`
-        *,
-        profiles (
-          nome,
-          email,
-          laboratorio_id
-        ),
-        embarcacoes (tipo)
-      `)
+      .select('*')
       .eq('user_id', researcherId)
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    
-    // If we need laboratorios info, fetch it separately
-    const coletas = data || [];
-    if (coletas.length > 0) {
-      const labIds = coletas
-        .map(c => c.profiles?.laboratorio_id)
-        .filter(id => id != null);
-      
-      if (labIds.length > 0) {
-        const { data: labs } = await supabase
-          .from('laboratorios')
-          .select('id, nome')
-          .in('id', labIds);
-        
-        const labMap = new Map(labs?.map(l => [l.id, l]) || []);
-        
-        coletas.forEach(c => {
-          if (c.profiles?.laboratorio_id) {
-            c.profiles.laboratorios = labMap.get(c.profiles.laboratorio_id);
-          }
-        });
-      }
+    if (!coletas || coletas.length === 0) return [];
+
+    // Get embarcacao IDs
+    const embarcacaoIds = [...new Set(coletas.map(c => c.embarcacao_id).filter(Boolean))];
+
+    // Fetch researcher profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, nome, email, laboratorio_id')
+      .eq('id', researcherId)
+      .single();
+
+    // Fetch laboratorio if exists
+    let laboratorio = null;
+    if (profile?.laboratorio_id) {
+      const { data: lab } = await supabase
+        .from('laboratorios')
+        .select('id, nome')
+        .eq('id', profile.laboratorio_id)
+        .single();
+      laboratorio = lab;
     }
-    
-    return coletas;
+
+    // Fetch embarcacoes
+    const { data: embarcacoes } = embarcacaoIds.length > 0
+      ? await supabase.from('embarcacoes').select('id, tipo').in('id', embarcacaoIds)
+      : { data: [] };
+
+    // Create embarcacao map
+    const embarcacaoMap = new Map(embarcacoes?.map(e => [e.id, e]) || []);
+
+    // Combine data
+    return coletas.map(coleta => {
+      const embarcacao = coleta.embarcacao_id ? embarcacaoMap.get(coleta.embarcacao_id) : null;
+
+      return {
+        ...coleta,
+        profiles: profile ? {
+          ...profile,
+          laboratorios: laboratorio
+        } : null,
+        embarcacoes: embarcacao
+      };
+    });
   }
 
   async findByUser(userId: string): Promise<IColeta[]> {
