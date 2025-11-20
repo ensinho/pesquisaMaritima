@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Fish, MapPin, Calendar, Ruler, Weight } from "lucide-react";
+import { Fish, MapPin, Calendar, Ruler, Weight, User, Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,9 +12,10 @@ type Coleta = Tables<"coletas">;
 interface RecentCollectionsProps {
   coletas: IColeta[];
   isLoading: boolean;
+  showResearcherInfo?: boolean;
 }
 
-const RecentCollections = ({ coletas, isLoading }: RecentCollectionsProps) => {
+const RecentCollections = ({ coletas, isLoading, showResearcherInfo = false }: RecentCollectionsProps) => {
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -104,6 +105,22 @@ const RecentCollections = ({ coletas, isLoading }: RecentCollectionsProps) => {
                     <p className="text-sm text-muted-foreground italic">
                       {coleta.nome_cientifico}
                     </p>
+                  )}
+                  
+                  {/* Informações do pesquisador (apenas para admin) */}
+                  {showResearcherInfo && coleta.profiles && (
+                    <div className="flex flex-wrap gap-3 pt-1">
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-secondary/20 px-2 py-1 rounded-md">
+                        <User className="w-3.5 h-3.5 text-primary/70" />
+                        <span className="font-medium">{coleta.profiles.nome}</span>
+                      </div>
+                      {coleta.profiles.laboratorios && (
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-accent/20 px-2 py-1 rounded-md">
+                          <Building2 className="w-3.5 h-3.5 text-accent/70" />
+                          <span>{coleta.profiles.laboratorios.nome}</span>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
 

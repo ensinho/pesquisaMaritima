@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import UserStatistics from "@/components/UserStatistics";
 import RecentCollections from "@/components/RecentCollections";
 import { useColetasByUser } from "@/hooks/useColetas";
+import { useAdminColetas } from "@/hooks/useAdminColetas";
 
 const Home = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -16,8 +17,15 @@ const Home = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Buscar coletas do usuário
-  const { data: coletas, isLoading: isLoadingColetas } = useColetasByUser(user?.id || "");
+  // Buscar coletas do usuário (normal users)
+  const { data: userColetas, isLoading: isLoadingUserColetas } = useColetasByUser(user?.id || "");
+  
+  // Buscar todas as coletas (admins)
+  const { data: adminColetas, isLoading: isLoadingAdminColetas } = useAdminColetas();
+  
+  // Use admin coletas if user is admin, otherwise use user coletas
+  const coletas = isAdmin ? adminColetas : userColetas;
+  const isLoadingColetas = isAdmin ? isLoadingAdminColetas : isLoadingUserColetas;
 
   useEffect(() => {
     const checkAuthAndRole = async () => {
@@ -202,7 +210,9 @@ const Home = () => {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-1 h-8 bg-gradient-ocean rounded-full" />
-                <h3 className="text-2xl font-semibold">Minhas Coletas Recentes</h3>
+                <h3 className="text-2xl font-semibold">
+                  {isAdmin ? "Coletas Gerais (Todas)" : "Minhas Coletas Recentes"}
+                </h3>
               </div>
               {coletas && coletas.length > 5 && (
                 <Button 
@@ -215,7 +225,11 @@ const Home = () => {
                 </Button>
               )}
             </div>
-            <RecentCollections coletas={coletas || []} isLoading={isLoadingColetas} />
+            <RecentCollections 
+              coletas={coletas || []} 
+              isLoading={isLoadingColetas} 
+              showResearcherInfo={isAdmin}
+            />
           </div>
         </div>
       </main>
