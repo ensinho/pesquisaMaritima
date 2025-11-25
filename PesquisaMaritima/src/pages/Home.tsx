@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { User } from "@supabase/supabase-js";
-import { Plus, LogOut, Fish, Heart, User as UserIcon, Settings, Waves } from "lucide-react";
+import { Plus, LogOut, Fish, Heart, User as UserIcon, ShieldCheck, Waves } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import UserStatistics from "@/components/UserStatistics";
 import RecentCollections from "@/components/RecentCollections";
@@ -103,6 +103,17 @@ const Home = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              
+              {isAdmin && (
+                <Button 
+                  variant="default" 
+                  onClick={() => navigate("/admin")}
+                  className="hover:bg-primary/90 transition-colors gap-2"
+                >
+                  <ShieldCheck className="w-5 h-5" />
+                  <span className="hidden sm:inline">Administrativo</span>
+                </Button>
+              )}
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -111,16 +122,6 @@ const Home = () => {
               >
                 <UserIcon className="w-5 h-5" />
               </Button>
-              {isAdmin && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => navigate("/admin")}
-                  className="hover:bg-primary/90 transition-colors"
-                >
-                  <Settings className="w-5 h-5" />
-                </Button>
-              )}
               <Button 
                 variant="ghost" 
                 size="icon" 
