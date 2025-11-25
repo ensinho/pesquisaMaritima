@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Upload, X } from "lucide-react";
+import { ArrowLeft, Upload, X, Dna, Fish, Calendar, MapPin, Ruler, Weight, Ship, Camera } from "lucide-react";
 
 interface Embarcacao {
   id: string;
@@ -149,7 +149,10 @@ const NovaColeta = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="nome_cientifico">Nome Científico</Label>
+                  <Label htmlFor="nome_cientifico" className="flex items-center gap-2">
+                    <Dna className="w-4 h-4 text-purple-600" />
+                    Nome Científico
+                  </Label>
                   <Input
                     id="nome_cientifico"
                     name="nome_cientifico"
@@ -157,7 +160,10 @@ const NovaColeta = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="nome_comum">Nome Comum</Label>
+                  <Label htmlFor="nome_comum" className="flex items-center gap-2">
+                    <Fish className="w-4 h-4 text-blue-600" />
+                    Nome Comum
+                  </Label>
                   <Input
                     id="nome_comum"
                     name="nome_comum"
@@ -168,7 +174,10 @@ const NovaColeta = () => {
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="data">Data da Coleta</Label>
+                  <Label htmlFor="data" className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-green-600" />
+                    Data da Coleta
+                  </Label>
                   <Input
                     id="data"
                     name="data"
@@ -177,7 +186,10 @@ const NovaColeta = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="local">Local</Label>
+                  <Label htmlFor="local" className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-red-600" />
+                    Local
+                  </Label>
                   <Input
                     id="local"
                     name="local"
@@ -188,7 +200,10 @@ const NovaColeta = () => {
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="comprimento">Comprimento (cm)</Label>
+                  <Label htmlFor="comprimento" className="flex items-center gap-2">
+                    <Ruler className="w-4 h-4 text-orange-600" />
+                    Comprimento (cm)
+                  </Label>
                   <Input
                     id="comprimento"
                     name="comprimento"
@@ -198,7 +213,10 @@ const NovaColeta = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="peso">Peso (kg)</Label>
+                  <Label htmlFor="peso" className="flex items-center gap-2">
+                    <Weight className="w-4 h-4 text-teal-600" />
+                    Peso (kg)
+                  </Label>
                   <Input
                     id="peso"
                     name="peso"
@@ -210,7 +228,10 @@ const NovaColeta = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="embarcacao_id">Embarcação</Label>
+                <Label htmlFor="embarcacao_id" className="flex items-center gap-2">
+                  <Ship className="w-4 h-4 text-cyan-600" />
+                  Embarcação
+                </Label>
                 <Select name="embarcacao_id">
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma embarcação" />
@@ -226,7 +247,10 @@ const NovaColeta = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Fotos (até 3)</Label>
+                <Label className="flex items-center gap-2">
+                  <Camera className="w-4 h-4 text-pink-600" />
+                  Fotos (até 3)
+                </Label>
                 <div className="flex flex-wrap gap-4">
                   {photos.map((photo, index) => (
                     <div key={index} className="relative">
